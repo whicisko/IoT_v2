@@ -1,0 +1,76 @@
+# # docker-compose.yml
+# version: '3.9'
+
+# services:
+#   mqtt-broker:
+#     build: ./mqtt-broker
+#     container_name: mqtt-broker
+#     ports:
+#       - "1883:1883"
+
+#   fastapi-service:
+#     build: ./fastapi-service
+#     container_name: fastapi-service
+#     ports:
+#       - "8000:8000"
+
+#   data-processor:
+#     build: ./data-processor
+#     container_name: data-processor
+#     depends_on:
+#       - mqtt-broker
+
+#   mqtt-client:
+#     build: ./mqtt-client
+#     container_name: mqtt-client
+#     depends_on:
+#       - mqtt-broker
+
+
+version: "3.9"
+
+services:
+  mqtt-broker:
+    build: 
+      context: ./mqtt-broker
+      dockerfile: Dockerfile
+    volumes:
+      - ./mqtt-broker:/mosquitto/:rw
+    ports:
+      - "1883:1883"
+    networks:
+      - default
+
+  fastapi-service:
+    build:
+      context: ./fastapi-service
+      dockerfile: Dockerfile
+    networks:
+      - default
+    depends_on:
+      - "data-processor"
+
+  data-processor:
+    build:
+      context: ./data-processor
+      dockerfile: Dockerfile
+    networks:
+      - default
+    depends_on:
+      - "mqtt-broker"
+
+  mqtt-client:
+    build:
+      context: ./mqtt-client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - default
+    depends_on:
+      - "mqtt-broker"
+
+networks:
+  default:
+    driver: bridge
+
